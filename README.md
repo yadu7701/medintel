@@ -1,2 +1,2 @@
 # medintel
-MedIntel is an AI-powered medical reasoning system with agentic intelligence. It integrates multidisciplinary knowledge, supports diagnostics, and uses Explainable AI to provide transparent insights. Built with Python, PyTorch, LangChain, and Streamlit.
+AI-powered medical reasoning system with agentic intelligence. Supports report analysis via specialist agents (Cardiologist, Psychologist, Pulmonologist) and a multidisciplinary team diagnosis, with a Flask chatbot interface for treatments and doctor recommendations.
