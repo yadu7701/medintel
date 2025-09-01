@@ -166,9 +166,5 @@ python tests/test_chatbot_direct.py
 * ☁️ Deploy as a **cloud-based service with authentication**
 * 🔗 Deeper integration with **EHR systems**
 
----
 
-```
-
----
 
