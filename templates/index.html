@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Diagnostic System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .specialist-report {
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .diagnosis-section {
+            display: none;
+        }
+        .specialist-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .file-type-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        .report-content {
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        .nav-tabs {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card p-4 mb-4">
+            <h1 class="text-center mb-4">Medical Diagnostic System</h1>
+            
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">
+                        <i class="fas fa-file-upload me-2"></i>Upload Report
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a href="/chat" class="nav-link" id="chat-tab" type="button">
+                        <i class="fas fa-comments me-2"></i>Chat with AI Doctor
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="myTabContent">
+                <!-- Upload Tab -->
+                <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                    <!-- File Upload Section -->
+                    <div class="upload-section">
+                        <form id="uploadForm" class="mb-4">
+                            <div class="mb-3">
+                                <label for="reportFile" class="form-label">Upload Medical Report</label>
+                                <input type="file" class="form-control" id="reportFile" name="report" accept=".txt,.pdf">
+                                <div class="file-type-info">
+                                    Accepted file types: PDF, TXT
+                                    <br>
+                                    <i class="fas fa-info-circle"></i> Files will be processed and analyzed by our AI medical team
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-microscope me-2"></i>Analyze Report
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div class="loading-spinner text-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Processing medical report...</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div class="diagnosis-section">
+                        <h3 class="mb-4">Specialist Reports</h3>
+                        
+                        <!-- Cardiologist Report -->
+                        <div class="specialist-report card p-3 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-heartbeat specialist-icon text-danger"></i>
+                                <h4>Cardiologist Report</h4>
+                            </div>
+                            <div id="cardiologistReport" class="report-content"></div>
+                        </div>
+
+                        <!-- Psychologist Report -->
+                        <div class="specialist-report card p-3 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-brain specialist-icon text-success"></i>
+                                <h4>Psychologist Report</h4>
+                            </div>
+                            <div id="psychologistReport" class="report-content"></div>
+                        </div>
+
+                        <!-- Pulmonologist Report -->
+                        <div class="specialist-report card p-3 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-lungs specialist-icon text-info"></i>
+                                <h4>Pulmonologist Report</h4>
+                            </div>
+                            <div id="pulmonologistReport" class="report-content"></div>
+                        </div>
+
+                        <!-- Final Diagnosis -->
+                        <div class="card p-3 mt-4">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-file-medical specialist-icon text-primary"></i>
+                                <h4>Final Diagnosis</h4>
+                            </div>
+                            <div id="finalDiagnosis" class="report-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('reportFile');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file first');
+                return;
+            }
+            
+            const fileName = fileInput.files[0].name;
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+            
+            if (!['pdf', 'txt'].includes(fileExtension)) {
+                alert('Please upload either a PDF or TXT file');
+                return;
+            }
+            
+            formData.append('report', fileInput.files[0]);
+            
+            // Show loading spinner
+            document.querySelector('.loading-spinner').style.display = 'block';
+            document.querySelector('.diagnosis-section').style.display = 'none';
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Display specialist reports
+                    document.getElementById('cardiologistReport').textContent = data.results.specialist_reports.Cardiologist;
+                    document.getElementById('psychologistReport').textContent = data.results.specialist_reports.Psychologist;
+                    document.getElementById('pulmonologistReport').textContent = data.results.specialist_reports.Pulmonologist;
+                    document.getElementById('finalDiagnosis').textContent = data.results.final_diagnosis;
+                    
+                    // Show all reports
+                    document.querySelector('.diagnosis-section').style.display = 'block';
+                    document.querySelectorAll('.specialist-report').forEach(report => {
+                        report.style.display = 'block';
+                    });
+                } else {
+                    alert('Error processing report: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error uploading file: ' + error.message);
+            } finally {
+                // Hide loading spinner
+                document.querySelector('.loading-spinner').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

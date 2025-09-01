@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 1rem;
+            background: #007bff;
+            color: white;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        .bot-message {
+            background: #e9ecef;
+            color: #212529;
+        }
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .quick-actions {
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .quick-action-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .quick-action-btn:hover {
+            background: #dee2e6;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 0.75rem;
+            background: #e9ecef;
+            border-radius: 10px;
+            max-width: 80%;
+            margin-bottom: 1rem;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #6c757d;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .new-chat-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .nav-button {
+            color: white;
+            margin-left: 10px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <a href="/" class="nav-button">
+                <i class="fas fa-home"></i>
+            </a>
+            <div class="chat-title">
+                <h4><i class="fas fa-robot me-2"></i>Medical Assistant</h4>
+                <small>Describe your symptoms or ask questions about your health</small>
+            </div>
+            <button class="new-chat-btn" onclick="clearSession()">
+                <i class="fas fa-redo-alt me-1"></i>New Conversation
+            </button>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="sendMessage('What treatments are recommended?')">
+                <i class="fas fa-pills me-2"></i>Treatment Options
+            </button>
+            <button class="quick-action-btn" onclick="sendMessage('Should I see a doctor?')">
+                <i class="fas fa-user-md me-2"></i>Doctor Visit
+            </button>
+            <button class="quick-action-btn" onclick="sendMessage('What medications should I take?')">
+                <i class="fas fa-prescription-bottle me-2"></i>Medications
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm your medical assistant. Please describe your symptoms or ask any health-related questions.
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" class="form-control" id="userInput" placeholder="Type your message here...">
+            <button class="btn btn-primary" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage(message = null) {
+            const messageText = message || userInput.value.trim();
+            if (!messageText) return;
+
+            // Add user message to chat
+            addMessage(messageText, true);
+            userInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Hide typing indicator and add bot response
+                    hideTypingIndicator();
+                    addMessage(data.response);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('Sorry, I encountered an error. Please try again.');
+                console.error('Error:', error);
+            }
+        }
+
+        async function clearSession() {
+            try {
+                const response = await fetch('/clear_session');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Clear chat messages
+                    chatMessages.innerHTML = '';
+                    
+                    // Add welcome message
+                    addMessage('Hello! I\'m your medical assistant. Please describe your symptoms or ask any health-related questions.');
+                    
+                    // Add typing indicator back
+                    chatMessages.appendChild(typingIndicator);
+                }
+            } catch (error) {
+                console.error('Error clearing session:', error);
+            }
+        }
+
+        // Handle Enter key
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html> 
